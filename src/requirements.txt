@@ -1,0 +1,7 @@
+PyQt5
+qrcode[pil]
+openpyxl
+pillow
+matplotlib
+python-dotenv
+pandas
