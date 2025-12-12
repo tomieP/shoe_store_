@@ -1,9 +1,8 @@
 import qrcode
-import os
 from pathlib import Path
 
 def SaveAt(filename):
-    path = 'C:/Proj/shoe_store_management/anh_QRcode_Sanpham'
+    path = r'C:/Proj/shoe_store/src/qrcodes/products'
 # Source - https://stackoverflow.com/a
 # Posted by wim, modified by community. See post 'Timeline' for change history
 # Retrieved 2025-12-05, License - CC BY-SA 4.0
