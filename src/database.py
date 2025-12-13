@@ -141,5 +141,4 @@ class Database:
         except Exception as e:
             print(f"Loi sao luu database: {e}")
             return None
-
 db = Database()
