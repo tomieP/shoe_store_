@@ -1,79 +1,96 @@
 import sqlite3 
 import os
+from pathlib import Path
 from datetime import datetime
 
 class Database:
-    def __init__(self, db_path ='data/store.db'):
+    def __init__(self, db_path ='data\store.db'):
         self.db_path = db_path
-        self.intit_database()
+        self.init_database()
     
     def init_database(self):
         try:
             os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
             conn = sqlite3.connect(self.db_path)
+            conn.execute("PRAGMA foreign_keys = ON;")
             cursor = conn.cursor()
 
-        #PRODICTS TABLE
+        #PRODUCTS TABLE
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS products(
-                        maSP INTERGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                        conKinhDoanh BOOLEAN NOT NULL,
-                        donGia REAL NOT NULL,
-                        brand TEXT,
-                        imagePath TEXT NOT NULL,
-                        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        taoNgay TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        QRPath TEXT NOT NULL,
-                        size INTERGER NOT NULL,
-                        soluongTon INTERGER 0,
+                        maSP INTEGER PRIMARY KEY AUTOINCREMENT,
                         tenSP TEXT,
-                        mota TEXT)
+                        mota TEXT,
+                        brand TEXT,
+                           
+                        donGia REAL NOT NULL,
+                        size INTERGER NOT NULL,
+                        soluongTon INTERGER DEFAULT 0,
+                        
+                        conKinhDoanh INTEGER NOT NULL, --1: con kinh doanh, 0: ngung kinh doanh
+                        imagePath TEXT NOT NULL,
+                        QRPath TEXT NOT NULL,
+                           
+                        ngayCapNhat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        taoNgay TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        )
                         ''')
         #INVOICE TABLE
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS invoices(
-                        maHD INTERGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                        ngayBan DATE NOT NULL,
+                        maHD INTEGER PRIMARY KEY AUTOINCREMENT,
+                        ngayBan TEXT NOT NULL,
                         phuongthucThanhToan TEXT NOT NULL,
-                        tongTien REAL NOT NULLL,
+                        tongTien REAL NOT NULL,
                         ghiChu TEXT
                         )
                         ''')
         #INVOICE DETAILS TABLE
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS invoice_details(
+                        maCTHD INTEGER PRIMARY KEY AUTOINCREMENT,
+                        maHD INTEGER NOT NULL,
+                        maSP INTEGER NOT NULL,
+                           
                         tenSP TEXT NOT NULL,
-                        size INTERGER NOT NULL,
+                        size INTEGER NOT NULL,
                         donGia REAL NOT NULL,
-                        soLuong int NOT NULL,
-                        thanhTien REAL NOT NULL,
-                        maCTHD INTERGER PRMARY KEY AUTOINCREAMENT NOT NULL,
-                        maHD INTERGER FOREIGN KEY REFERENCES invoices(maHD),
-                        maSP INTERGER FOREIGN KEY REFERENCES products(maSP)
+                        soLuong INTEGER NOT NULL CHECK (soLuong >= 0),
+                        thanhTien REAL NOT NULL CHECK (thanhTien = donGia * soLuong),
+                        ghiChu TEXT,
+                        FOREIGN KEY (maHD) REFERENCES invoices(maHD),
+                        FOREIGN KEY (maSP) REFERENCES products(maSP)
                         )
                         '''
                         )
         #DAILY_RP TABLE
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS daily_rp(
-                        maTK INTERGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                        ngayTK datime NOT NULL,
-                        tongDoanhThu REAL NOT NULL,
-                        tongSPBan INTERGER NOT NULL,
-                        tongHD NTERGER NOT NULL,
-                        ghiChu TEXT     
-                        taoNgay TIMESTAMP DEFAULT CURRENT_TIMESTAMP                  
+                        maTK INTEGER PRIMARY KEY AUTOINCREMENT,
+                        ngayTK TEXT NOT NULL,
+                        tongDoanhThu REAL NOT NULL CHECK (tongDoanhThu >= 0),
+                        tongSPBan INTEGER NOT NULL  CHECK (tongSPBan >= 0),
+                        tongHD INTEGER NOT NULL  CHECK (tongHD >= 0),
+                        ghiChu TEXT,
+                        taoNgay TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  
+
+                        UNIQUE(ngayTK)
                         )
                         ''')
+            #IMPORT ITEMS TABLE
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS import_items(
-                        maNH INTERGER PRiMARY KEY AUTOINREAMENT NOT NULL,
+                        maNH INTEGER PRIMARY KEY AUTOINCREMENT,
+                        maSP INTEGER NOT NULL,
+                           
                         tenSP TEXT NOT NULL,
-                        size INTERGER NOT NULL
-                        maSP INTERGER FOREIGN KEY REFERENCES products(maSP),
-                        soLuong INTERGER NOT NULL,
-                        giaGoc REAL NOT NULL,
-                        ngayTao TIMESTAMP DEFAULT CURRENT_TIMESTAMP                                               
+                        size INTEGER NOT NULL,
+                        soLuong INTERGER NOT NULL CHECK (soLuong > 0),
+                        giaGoc REAL NOT NULL CHECK (giaGoc > 0),
+                        
+                        ngayTao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                        FOREIGN KEY (maSP) REFERENCES products(maSP)                                             
                         )
                         ''')
             conn.commit()
@@ -81,4 +98,48 @@ class Database:
             print("Khoi tao database thanh cong!")
         except Exception as e:
             print(f"Loi khoi tao database: {e}")
+
+    def get_connection(self):
+        """Tạo và trả về kết nối đến database"""
+        return sqlite3.connect(self.db_path)
     
+    def execute_query(self, query, params = (), fetch = True):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute(query,params)
+            if fetch:
+                result = cursor.fetchall()
+            else:
+                conn.commit()
+                result = cursor.lastrowid
+            conn.close()
+            return result
+
+        except Exception as e:
+            conn.rollback()
+            conn.close()
+            raise e
+        
+    def backup_database(self, backup_path = 'C:/Proj/shoe_store/src/backups'):
+        try:
+            Path(backup_path).mkdir(parents=True, exist_ok=True)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_file = backup_path + '/' f'backup_{timestamp}.db'
+
+            src = sqlite3.connect(self.db_path)
+            backup = sqlite3.connect(backup_file)
+
+            src.backup(backup)
+
+            src.close()
+            backup.close()
+
+            print(f"Sao luu database thanh cong tai {backup_file}")
+            return backup_file
+        except Exception as e:
+            print(f"Loi sao luu database: {e}")
+            return None
+
+db = Database()
