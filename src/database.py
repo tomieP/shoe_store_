@@ -143,4 +143,3 @@ class Database:
         finally:
             source_conn.close()
             backup_conn.close()
-#db = Database()
