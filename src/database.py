@@ -4,7 +4,7 @@ from pathlib import Path
 from datetime import datetime
 
 class Database:
-    def __init__(self, db_path ='data\store.db'):
+    def __init__(self, db_path =r'data\store.db'):
         self.db_path = db_path
         self.init_database()
     
@@ -122,23 +122,25 @@ class Database:
             conn.close()
             raise e
         
-    def backup_database(self, backup_path = 'C:/Proj/shoe_store/src/backups'):
+    def backup_database(self, backup_dir = './src/backups'):
+        source_conn = None
+        backup_conn = None
         try:
-            Path(backup_path).mkdir(parents=True, exist_ok=True)
+            Path(backup_dir).mkdir(parents=True, exist_ok=True)
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            backup_file = backup_path + '/' f'backup_{timestamp}.db'
+            backup_file = os.path.join(backup_dir,f'backup_{timestamp}.db')
 
-            src = sqlite3.connect(self.db_path)
-            backup = sqlite3.connect(backup_file)
+            source_conn = sqlite3.connect(self.db_path)
+            backup_conn = sqlite3.connect(backup_file)
 
-            src.backup(backup)
-
-            src.close()
-            backup.close()
+            source_conn.backup(backup_conn)
 
             print(f"Sao luu database thanh cong tai {backup_file}")
             return backup_file
         except Exception as e:
             print(f"Loi sao luu database: {e}")
             return None
-db = Database()
+        finally:
+            source_conn.close()
+            backup_conn.close()
+#db = Database()
