@@ -25,7 +25,7 @@ class Database:
                            
                         donGia REAL NOT NULL,
                         size INTEGER NOT NULL,
-                        soluongTon INTEGER DEFAULT 0,
+                        soluongTon INTEGER DEFAULT 0 CHECK (soluongTon >= 0)),
                         
                         conKinhDoanh INTEGER NOT NULL CHECK(conKinhDoanh IN (0,1)), --1: con kinh doanh 0: ngung kinh doanh
                         imagePath TEXT NOT NULL,
