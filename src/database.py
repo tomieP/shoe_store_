@@ -24,10 +24,10 @@ class Database:
                         brand TEXT,
                            
                         donGia REAL NOT NULL,
-                        size INTERGER NOT NULL,
-                        soluongTon INTERGER DEFAULT 0,
+                        size INTEGER NOT NULL,
+                        soluongTon INTEGER DEFAULT 0,
                         
-                        conKinhDoanh INTEGER NOT NULL, --1: con kinh doanh, 0: ngung kinh doanh
+                        conKinhDoanh INTEGER NOT NULL CHECK(conKinhDoanh IN (0,1)), --1: con kinh doanh 0: ngung kinh doanh
                         imagePath TEXT NOT NULL,
                         QRPath TEXT NOT NULL,
                            
@@ -77,20 +77,34 @@ class Database:
                         UNIQUE(ngayTK)
                         )
                         ''')
-            #IMPORT ITEMS TABLE
+        #IMPORT ORDER
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS import_order(
+                           maDH INTEGER PRIMARY KEY AUTOINCREMENT,
+                           tenNhaCungCap TEXT,
+                           ngayNhapHang TEXT NOT NULL,
+                           tinhTrang TEXT NOT NULL CHECK (tinhTrang IN ("DANG CHO", "HOAN THANH")),--"DANG CHO" "HOAN THANH"
+                           ghiChu TEXT,
+                           taoNgay TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                           )
+                           ''')
+        #IMPORT ITEMS TABLE 
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS import_items(
                         maNH INTEGER PRIMARY KEY AUTOINCREMENT,
+                        maDH INTEGER NOT NULL,
                         maSP INTEGER NOT NULL,
                            
                         tenSP TEXT NOT NULL,
                         size INTEGER NOT NULL,
-                        soLuong INTERGER NOT NULL CHECK (soLuong > 0),
+                        soLuong INTEGER NOT NULL CHECK (soLuong > 0),
                         giaGoc REAL NOT NULL CHECK (giaGoc > 0),
                         
                         ngayTao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-                        FOREIGN KEY (maSP) REFERENCES products(maSP)                                             
+                        FOREIGN KEY (maSP) REFERENCES products(maSP),
+                        FOREIGN KEY (maDH) REFERENCES import_order(maDH)
+                                            
                         )
                         ''')
             conn.commit()
