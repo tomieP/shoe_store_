@@ -25,14 +25,14 @@ class Database:
                            
                         donGia REAL NOT NULL,
                         size INTEGER NOT NULL,
-                        soluongTon INTEGER DEFAULT 0 CHECK (soluongTon >= 0),
+                        soLuong INTEGER DEFAULT 0 CHECK (soLuong >= 0),
                         
                         conKinhDoanh INTEGER NOT NULL CHECK(conKinhDoanh IN (0,1)), --1: con kinh doanh 0: ngung kinh doanh
                         imagePath TEXT NOT NULL,
                         QRPath TEXT NOT NULL,
                            
                         ngayCapNhat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        taoNgay TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        ngayTao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                         )
                         ''')
         #INVOICE TABLE
@@ -72,7 +72,7 @@ class Database:
                         tongSPBan INTEGER NOT NULL  CHECK (tongSPBan >= 0),
                         tongHD INTEGER NOT NULL  CHECK (tongHD >= 0),
                         ghiChu TEXT,
-                        taoNgay TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  
+                        ngayTao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  
 
                         UNIQUE(ngayTK)
                         )
@@ -85,7 +85,8 @@ class Database:
                            ngayNhapHang TEXT NOT NULL,
                            tinhTrang TEXT NOT NULL CHECK (tinhTrang IN ("DANG CHO", "HOAN THANH")),--"DANG CHO" "HOAN THANH"
                            ghiChu TEXT,
-                           taoNgay TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                           tienVanChuyen REAL NOT NULL CHECK (tienVanChuyen >= 0),
+                           ngayTao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                            )
                            ''')
         #IMPORT ITEMS TABLE 
