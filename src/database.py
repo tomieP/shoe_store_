@@ -18,13 +18,14 @@ class Database:
         #PRODUCTS TABLE
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS products(
-                        maSP INTEGER PRIMARY KEY AUTOINCREMENT,
+                        maSP INTEGER PRIMARY KEY AUTOINCREMENT, --he thong sinh ma san pham
+                        codeSP TEXT UNIQUE NOT NULL, --nguoi dung tu nhap
                         tenSP TEXT,
                         mota TEXT,
                         brand TEXT,
                            
                         donGia REAL NOT NULL,
-                        size INTEGER NOT NULL,
+                        size TEXT NOT NULL,
                         soLuong INTEGER DEFAULT 0 CHECK (soLuong >= 0),
                         
                         conKinhDoanh INTEGER NOT NULL CHECK(conKinhDoanh IN (0,1)), --1: con kinh doanh 0: ngung kinh doanh
@@ -53,7 +54,7 @@ class Database:
                         maSP INTEGER NOT NULL,
                            
                         tenSP TEXT NOT NULL,
-                        size INTEGER NOT NULL,
+                        size TEXT NOT NULL,
                         donGia REAL NOT NULL,
                         soLuong INTEGER NOT NULL CHECK (soLuong >= 0),
                         thanhTien REAL NOT NULL CHECK (thanhTien = donGia * soLuong),
@@ -97,7 +98,7 @@ class Database:
                         maSP INTEGER NOT NULL,
                            
                         tenSP TEXT NOT NULL,
-                        size INTEGER NOT NULL,
+                        size TEXT NOT NULL,
                         soLuong INTEGER NOT NULL CHECK (soLuong > 0),
                         giaGoc REAL NOT NULL CHECK (giaGoc > 0),
                         
@@ -119,6 +120,16 @@ class Database:
         return sqlite3.connect(self.db_path)
     
     def execute_query(self, query, params = (), fetch = True):
+        '''
+        Docstring for execute_query
+        
+        :param self: 
+        :param query: 
+        :param params: tuple
+        :param fetch: quyêt định có lấy kết quả hay không
+            true -> tra ve toan bo ket qua (list[tuple])
+            false -> tra ve id mới nhất được thêm vào
+        '''
         conn = self.get_connection()
         cursor = conn.cursor()
 
@@ -158,3 +169,5 @@ class Database:
         finally:
             source_conn.close()
             backup_conn.close()
+
+db = Database()
