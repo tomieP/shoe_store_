@@ -4,12 +4,13 @@ from typing import Optional
 
 @dataclass
 class Product:
-    id:Optional[int] = None                    #mã sản phẩm
+    maSP:Optional[int] = None                  #mã sản phẩm (hệ thống sinh)
+    codeSP: Optional[str] = None               #tên mã sản phẩm (người dùng nhập)
     tenSP: Optional[str] = None                #tên sản phẩm    
     mota: Optional[str] = None                 #mô tả sản phẩm
     brand: Optional[str] = None                #brand sản phẩm
     donGia: float = 0.0                        #đơn giá 
-    size: Optional[int] = None                 #size sản phẩm
+    size: Optional[str] = None                 #size sản phẩm
     soLuong: int = 0                        #số lượng tồn kho
     conKinhDoanh: int = 1                      #1: con kinh doanh, 0: ngung kinh doanh
     imagePath: Optional[str] = None            #đường đẫn ảnh
@@ -22,11 +23,13 @@ class Product:
         tính tổng giá trị tồn kho của từng sản phẩm
         '''
         return self.donGia * self.soLuong
+   
     def TonKho(self) -> str:
         '''
         trả về số lượng tồn kho của sản phẩm
         '''
-        return f"Số lượng tồn kho của sản phẩm {self.id}_{self.tenSP}: {self.soLuong}."
+        return f"Số lượng tồn kho của sản phẩm {self.maSP}_{self.codeSP}_{self.tenSP}: {self.soLuong}."
+    
     def GiamGia(self,dong:float) -> float:
         '''
         Docstring for GiamGia
@@ -38,6 +41,7 @@ class Product:
         if 0 <= dong <= self.donGia:
             self.donGia -= dong
         return self.donGia
+
     def to_dict(self) ->dict:
         '''
         Docstring for to_dict
@@ -46,7 +50,8 @@ class Product:
         để lưu vào db
         '''
         return{
-            'id':self.id,
+            'maSP':self.maSP,
+            'codeSP':self.codeSP,
             'tenSP':self.tenSP,
             'mota':self.mota,
             'brand':self.brand,
@@ -75,7 +80,8 @@ class Product:
         if data.get('ngayCapNhat'):
             ngayCapNhat = datetime.fromisoformat(data['ngayCapNhat'])
         return cls(
-            id = data.get('id'),
+            maSP = data.get('maSP'),
+            codeSP = data.get('codeSP'),
             tenSP = data.get('tenSP'),
             mota = data.get('mota'),
             brand = data.get('brand'),
