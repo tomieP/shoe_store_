@@ -4,33 +4,33 @@ from typing import Optional
 
 @dataclass
 class Product:
-    maSP:Optional[int] = None                  #mã sản phẩm (hệ thống sinh)
-    codeSP: Optional[str] = None               #tên mã sản phẩm (người dùng nhập)
-    tenSP: Optional[str] = None                #tên sản phẩm    
-    mota: Optional[str] = None                 #mô tả sản phẩm
-    brand: Optional[str] = None                #brand sản phẩm
-    donGia: float = 0.0                        #đơn giá 
-    size: Optional[str] = None                 #size sản phẩm
-    soLuong: int = 0                        #số lượng tồn kho
-    conKinhDoanh: int = 1                      #1: con kinh doanh, 0: ngung kinh doanh
-    imagePath: Optional[str] = None            #đường đẫn ảnh
-    QRPath: Optional[str] = None               #đường dẫn mã QR
-    ngayCapNhat: Optional[datetime] = None     #ngày cập nhật sản phẩm
-    ngayTao: Optional[datetime] = None         #ngày tạo sản phẩm
+    id:Optional[int] = None                       #mã sản phẩm (hệ thống sinh)
+    code: Optional[str] = None                      #tên mã sản phẩm (người dùng nhập)
+    name: Optional[str] = None                      #tên sản phẩm    
+    description: Optional[str] = None               #mô tả sản phẩm
+    brand: Optional[str] = None                     #brand sản phẩm
+    price: float = 0.0                              #đơn giá 
+    size: Optional[str] = None                      #size sản phẩm
+    quantity: int = 0                               #số lượng tồn kho
+    is_active: int = 1                              #1: con kinh doanh, 0: ngung kinh doanh
+    imagePath: Optional[str] = None                 #đường đẫn ảnh
+    QRPath: Optional[str] = None                    #đường dẫn mã QR
+    updated_at: Optional[datetime] = None           #ngày cập nhật sản phẩm
+    created_at: Optional[datetime] = None           #ngày tạo sản phẩm
 
-    def TongGiaTriTonKho(self) ->float:
-        '''
+    def inventory_value(self) ->float:
+        """
         tính tổng giá trị tồn kho của từng sản phẩm
-        '''
-        return self.donGia * self.soLuong
+        """
+        return self.price * self.quantity
    
-    def TonKho(self) -> str:
-        '''
+    def getQuantity(self) -> str:
+        """
         trả về số lượng tồn kho của sản phẩm
-        '''
-        return f"Số lượng tồn kho của sản phẩm {self.maSP}_{self.codeSP}_{self.tenSP}: {self.soLuong}."
+        """
+        return f"Số lượng còn lại của sản phẩm {self.id}_{self.code}_{self.name}: {self.quantity}."
     
-    def GiamGia(self,dong:float) -> float:
+    def fix_discount(self,dong:float) -> float:
         '''
         Docstring for GiamGia
         Áp dụng giảm giá cho sản phẩm
@@ -38,59 +38,50 @@ class Product:
         (ví dụ: dong = 5 => giam 5k trên sp)
         return giá sau khi giảm
         '''
-        if 0 <= dong <= self.donGia:
-            self.donGia -= dong
-        return self.donGia
+        if 0 <= dong <= self.price:
+            new_price = self.price
+            new_price -= dong
+        return new_price
 
     def to_dict(self) ->dict:
-        '''
-        Docstring for to_dict
-        
+        '''        
         chuyển đổi dữ liệu sang dict
         để lưu vào db
         '''
         return{
-            'maSP':self.maSP,
-            'codeSP':self.codeSP,
-            'tenSP':self.tenSP,
-            'mota':self.mota,
+            'maSP':self.id,
+            'codeSP':self.code,
+            'tenSP':self.name,
+            'mota':self.description,
             'brand':self.brand,
-            'donGia':self.donGia,
+            'donGia':self.price,
             'size':self.size,
-            'soLuong':self.soLuong,
-            'conKinhDoanh':self.conKinhDoanh,
+            'soLuong':self.quantity,
+            'conKinhDoanh':self.is_active,
             'imagePath':self.imagePath,
             'QRPath':self.QRPath,
-            'ngayCapNhat':self.ngayCapNhat.isoformat() if self.ngayCapNhat else None,
-            'ngayTao':self.ngayTao.isoformat() if self.ngayTao else None
+            'updated_at':self.updated_at.isoformat() if self.updated_at else None,
+            'created_at':self.created_at.isoformat() if self.created_at else None
         }
     
     @classmethod
     def from_dict(cls,data:dict) -> 'Product':
         '''
-        Docstring for from_dict
-        
         chuyển từ dict sang class Product
         để chuyền dữ liệu từ db sang object
         '''
-        ngayTao = None
-        if data.get('ngayTao'):
-            ngayTao = datetime.fromisoformat(data['ngayTao'])
-        ngayCapNhat = None
-        if data.get('ngayCapNhat'):
-            ngayCapNhat = datetime.fromisoformat(data['ngayCapNhat'])
         return cls(
-            maSP = data.get('maSP'),
-            codeSP = data.get('codeSP'),
-            tenSP = data.get('tenSP'),
-            mota = data.get('mota'),
+            id = data.get('id'),
+            code = data.get('code'),
+            name = data.get('name'),
+            description = data.get('description'),
             brand = data.get('brand'),
-            donGia = data.get('donGia'),
+            price = data.get('price'),
             size = data.get('size'),
-            soLuong = data.get('soLuong'),
-            conKinhDoanh = data.get('conKinhDoanh'),
+            quantity = data.get('quantity'),
+            is_active = data.get('is_active'),
             imagePath = data.get('imagePath'),
             QRPath = data.get('QRPath'),
-            ngayCapNhat = ngayCapNhat,
-            ngayTao = ngayTao
+            updated_at = datetime.fromisoformat(data.get('updated_at')) if data.get('updated_at') else None,
+            created_at = datetime.fromisoformat(data.get('created_at')) if data.get('created_at') else None
         )
