@@ -18,94 +18,91 @@ class Database:
         #PRODUCTS TABLE
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS products(
-                        maSP INTEGER PRIMARY KEY AUTOINCREMENT, --he thong sinh ma san pham
-                        codeSP TEXT UNIQUE NOT NULL, --nguoi dung tu nhap
-                        tenSP TEXT,
-                        mota TEXT,
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        code TEXT UNIQUE NOT NULL,
+                        name TEXT,
+                        description TEXT,
                         brand TEXT,
                            
-                        donGia REAL NOT NULL,
+                        price REAL NOT NULL,
                         size TEXT NOT NULL,
-                        soLuong INTEGER DEFAULT 0 CHECK (soLuong >= 0),
+                        quantity INTEGER DEFAULT 0 CHECK (quantity >= 0),
                         
-                        conKinhDoanh INTEGER NOT NULL CHECK(conKinhDoanh IN (0,1)), --1: con kinh doanh 0: ngung kinh doanh
+                        is_active INTEGER NOT NULL CHECK(is_active IN (0,1)),
                         imagePath TEXT NOT NULL,
                         QRPath TEXT NOT NULL,
                            
-                        ngayCapNhat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        ngayTao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                         )
                         ''')
         #INVOICE TABLE
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS invoices(
-                        maHD INTEGER PRIMARY KEY AUTOINCREMENT,
-                        ngayBan TEXT NOT NULL,
-                        phuongthucThanhToan TEXT NOT NULL,
-                        tongTien REAL NOT NULL,
-                        ghiChu TEXT
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        method TEXT NOT NULL,
+                        total REAL NOT NULL,
+                        note TEXT
                         )
                         ''')
         #INVOICE DETAILS TABLE
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS invoice_details(
-                        maCTHD INTEGER PRIMARY KEY AUTOINCREMENT,
-                        maHD INTEGER NOT NULL,
-                        maSP INTEGER NOT NULL,
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        id_invoice INTEGER NOT NULL,
+                        id_product INTEGER NOT NULL,
                            
-                        tenSP TEXT NOT NULL,
+                        product_name TEXT NOT NULL,
                         size TEXT NOT NULL,
-                        donGia REAL NOT NULL,
-                        soLuong INTEGER NOT NULL CHECK (soLuong >= 0),
-                        thanhTien REAL NOT NULL CHECK (thanhTien = donGia * soLuong),
-                        ghiChu TEXT,
-                        FOREIGN KEY (maHD) REFERENCES invoices(maHD),
-                        FOREIGN KEY (maSP) REFERENCES products(maSP)
+                        price REAL NOT NULL,
+                        quantity INTEGER NOT NULL CHECK (quantity >= 0),
+                        subTotal REAL NOT NULL,
+                        note TEXT,
+                        FOREIGN KEY (id_invoice) REFERENCES invoices(id),
+                        FOREIGN KEY (id_product) REFERENCES products(id)
                         )
                         '''
                         )
         #DAILY_RP TABLE
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS daily_rp(
-                        maTK INTEGER PRIMARY KEY AUTOINCREMENT,
-                        ngayTK TEXT NOT NULL,
-                        tongDoanhThu REAL NOT NULL CHECK (tongDoanhThu >= 0),
-                        tongSPBan INTEGER NOT NULL  CHECK (tongSPBan >= 0),
-                        tongHD INTEGER NOT NULL  CHECK (tongHD >= 0),
-                        ghiChu TEXT,
-                        ngayTao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  
-
-                        UNIQUE(ngayTK)
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        dailyRevenue REAL NOT NULL CHECK (dailyRevenue >= 0),
+                        total_units_sold INTEGER NOT NULL  CHECK (total_units_sold >= 0),
+                        invoice_total INTEGER NOT NULL  CHECK (invoice_total >= 0),
+                        note TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                         )
                         ''')
         #IMPORT ORDER
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS import_order(
-                           maDH INTEGER PRIMARY KEY AUTOINCREMENT,
-                           tenNhaCungCap TEXT,
-                           ngayNhapHang TEXT NOT NULL,
-                           tinhTrang TEXT NOT NULL CHECK (tinhTrang IN ("DANG CHO", "HOAN THANH")),--"DANG CHO" "HOAN THANH"
-                           ghiChu TEXT,
-                           tienVanChuyen REAL NOT NULL CHECK (tienVanChuyen >= 0),
-                           ngayTao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                           id INTEGER PRIMARY KEY AUTOINCREMENT,
+                           supplier_name TEXT,
+                           received_at TEXT NOT NULL,
+                           status TEXT NOT NULL CHECK (status IN ("WAITING", "FINISHED")),
+                           note TEXT,
+                           shipping_fee REAL NOT NULL CHECK (shipping_fee >= 0),
+                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                            )
                            ''')
         #IMPORT ITEMS TABLE 
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS import_items(
-                        maNH INTEGER PRIMARY KEY AUTOINCREMENT,
-                        maDH INTEGER NOT NULL,
-                        maSP INTEGER NOT NULL,
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        id_order INTEGER NOT NULL,
+                        id_product INTEGER NOT NULL,
                            
-                        tenSP TEXT NOT NULL,
+                        name TEXT NOT NULL,
                         size TEXT NOT NULL,
-                        soLuong INTEGER NOT NULL CHECK (soLuong > 0),
-                        giaGoc REAL NOT NULL CHECK (giaGoc > 0),
+                        quantity INTEGER NOT NULL CHECK (quantity > 0),
+                        unit_cost REAL NOT NULL CHECK (unit_cost > 0),
                         
-                        ngayTao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-                        FOREIGN KEY (maSP) REFERENCES products(maSP),
-                        FOREIGN KEY (maDH) REFERENCES import_order(maDH)
+                        FOREIGN KEY (id_product) REFERENCES products(id),
+                        FOREIGN KEY (id_order) REFERENCES import_order(id)
                                             
                         )
                         ''')
@@ -124,7 +121,7 @@ class Database:
         Docstring for execute_query
         
         :param self: 
-        :param query: 
+        :param query: ca
         :param params: tuple
         :param fetch: quyêt định có lấy kết quả hay không
             true -> tra ve toan bo ket qua (list[tuple])
