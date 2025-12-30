@@ -42,7 +42,7 @@ class Database:
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         method TEXT NOT NULL,
-                        total REAL NOT NULL,
+                        total_amount REAL NOT NULL,
                         note TEXT
                         )
                         ''')
@@ -53,11 +53,11 @@ class Database:
                         id_invoice INTEGER NOT NULL,
                         id_product INTEGER NOT NULL,
                            
-                        product_name TEXT NOT NULL,
+                        name TEXT NOT NULL,
                         size TEXT NOT NULL,
                         price REAL NOT NULL,
                         quantity INTEGER NOT NULL CHECK (quantity >= 0),
-                        subTotal REAL NOT NULL,
+                        sub_total REAL NOT NULL,
                         note TEXT,
                         FOREIGN KEY (id_invoice) REFERENCES invoices(id),
                         FOREIGN KEY (id_product) REFERENCES products(id)
@@ -68,9 +68,9 @@ class Database:
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS daily_rp(
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        dailyRevenue REAL NOT NULL CHECK (dailyRevenue >= 0),
+                        daily_revenue REAL NOT NULL CHECK (daily_revenue >= 0),
                         total_units_sold INTEGER NOT NULL  CHECK (total_units_sold >= 0),
-                        invoice_total INTEGER NOT NULL  CHECK (invoice_total >= 0),
+                        invoice_total_amount INTEGER NOT NULL  CHECK (invoice_total_amount >= 0),
                         note TEXT,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                         )

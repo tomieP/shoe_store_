@@ -4,22 +4,22 @@ from typing import Optional,List
 
 @dataclass
 class ImportItems:
-    id: Optional[int] = None            #mã nhập kho
-    id_order: Optional[int] = None      #mã đơn hàng
-    id_product: Optional[int] = None    #mã sản phẩm
-    tenSP: Optional[str] = None         #tên sản phẩm
-    size: Optional[int] = None          #size
-    soLuong: int = 0                    #số lượng
-    giaGoc: float = 0.0                 #giá gốc
-    ngayTao: Optional[datetime] = None  #ngày tạo
-    tongTien:float = 0.0                #tổng tiền
+    id: Optional[int] = None                #mã nhập kho
+    id_order: Optional[int] = None          #mã đơn hàng
+    id_product: Optional[int] = None        #mã sản phẩm
+    name: Optional[str] = None              #tên sản phẩm
+    size: Optional[int] = None              #size
+    quantity: int = 0                       #số lượng nhập vào
+    unit_cost: float = 0.0                  #giá gốc
+    created_at: Optional[datetime] = None   #ngày tạo
+    sub_total:float = 0.0                   #tổng tiền
 
-    def Tinh_tongTien(self) -> float:
+    def calculate_total_cost(self) -> float:
         '''
-        tính tổng tiền nhập kho cho 1 sản phẩm
+        tính tổng chi phí nhập của 1 sản phẩm vào 
         '''
-        self.tongTien = self.giaGoc * self.soLuong
-        return self.tongTien
+        self.sub_total = self.unit_cost * self.quantity
+        return self.sub_total
     
     def to_dict(self) -> dict:
         '''
@@ -29,67 +29,76 @@ class ImportItems:
             'id': self.id,
             'id_order': self.id_order,
             'id_product': self.id_product,
-            'tenSP': self.tenSP,
+            'name': self.name,
             'size': self.size,
-            'soLuong': self.soLuong,
-            'giaGoc': self.giaGoc,
-            'ngayTao': self.ngayTao.isoformat() if self.ngayTao else None,
-            'tongTien': self.tongTien
+            'quantity': self.quantity,
+            'unit_cost': self.unit_cost,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'sub_total': self.sub_total
         }
 
 @dataclass
 class ImportOrder:
-    id: Optional[int] = None                #mã đơn hàng
-    tenNhaCungCap: Optional[str] = None     #tên nhà cung cấp
-    ngayNhapHang: Optional[datetime] = None #ngày nhập hàng
-    tinhTrang: Optional[str] = None         #tình trạng
-    ghiChu: Optional[str] = None            #ghi chú
-    tienVanChuyen: Optional[float] = 0.0    #tiền vận chuyển
-    ngayTao: Optional[datetime] = None      #ngày tạo đơn nhập hàng
-    DSsanpham: List[ImportItems] = field(default_factory = list) #danh sách sản phẩm đơn nhập hàng
+    id: Optional[int] = None                                    #mã đơn hàng
+    supplier_name: Optional[str] = None                         #tên nhà cung cấp
+    received_at: Optional[datetime] = None                      #ngày nhập hàng
+    status: Optional[str] = None                                #tình trạng
+    note: Optional[str] = None                                  #ghi chú
+    shipping_fee: Optional[float] = 0.0                         #tiền vận chuyển
+    created_at: Optional[datetime] = None                       #ngày tạo đơn nhập hàng
+    items: List[ImportItems] = field(default_factory = list)    #danh sách sản phẩm đơn nhập hàng
 
-    def Tinh_TongChiPhi(self) -> float:
-        '''
+    def calculate_total_import_expense(self) -> float:
+        """
         Tính tổng chi phí đơn nhập hàng
-        '''
-        tongChiPhi = sum(sanpham.Tinh_tongTien() for sanpham in self.DSsanpham)
-        tongChiPhi += self.tienVanChuyen
-        return tongChiPhi
+        """
+        import_expens = sum(item.calculate_total_cost for item in self.items)
+        import_expens += self.shipping_fee
+        return import_expens
 
-    def ThemSanPham(self, id_product:int, soLuong:int, giaGoc: float):
-        '''
+    def add_item(self, id_product:int, quantity:int, unit_cost: float):
+        """
         thêm sản phẩm vào đơn nhập hàng
-        '''
-        sanpham = ImportItems(
+        """
+        item = ImportItems(
             id_product = id_product,
-            soLuong = soLuong,
-            giaGoc = giaGoc,
-            tongtien = soLuong * giaGoc
+            quantity = quantity,
+            unit_cost = unit_cost,
+            sub_total= quantity * unit_cost
             )
-        self.DSsanpham.append(sanpham)
-        self.Tinh_TongChiPhi()
+        self.items.append(item)
+        self.calculate_total_import_expense()
 
-    def TongSoLuong(self) -> int:
-        '''
-        Tính tổng số lượng sản phẩm đơn nhập hàng
-        '''
-        return sum(sanpham.soLuong for sanpham in self.DSsanpham)
-    
+    def get_import_summary(self):
+        """
+        xem tổng số lượng sản phẩm đơn nhập hàng
+        """
+        #print list san pham
+        count = 0
+        for item in self.items:
+            count+=1
+            print(f"{count}   {item.id_product}_{item.name}_{item.size}       {item.quantity}       {item.unit_cost}        {item.calculate_total_cost()}")
+
+        #print tong so luong san pham ca hoa don
+        for item in self.items:
+            total_amount = sum(item.quantity)
+        print(total_amount)
+
     def to_dict(self) -> dict:
         '''
         chuyen ImportOrder sang dict
         '''
         return{
             'id': self.id,
-            'tenNhaCungCap': self.tenNhaCungCap,
-            'ngayNhapHang': self.ngayNhapHang.isoformat() if self.ngayNhapHang else None,
+            'supplier_name': self.supplier_name,
+            'received_at': self.received_at.isoformat() if self.received_at else None,
             'tinhTrang': self.tinhTrang,
-            'ghiChu':self.ghiChu,
-            'tienVanChuyen':self.tienVanChuyen,
-            'ngayTao':self.ngayTao.isoformat() if self.ngayTao else None,
-            'DSsanpham':[sanpham.to_dict() for sanpham in self.DSsanpham],
-            'tongSoLuong':self.TongSoLuong(),
-            'tongChiPhi':self.Tinh_TongChiPhi()
+            'status':self.status,
+            'shipping_fee':self.shipping_fee,
+            'created_at':self.created_at.isoformat() if self.created_at else None,
+            'items':[item.to_dict() for item in self.items],
+            'total_unit':self.get_import_summary(),
+            'total_expens':self.calculate_total_import_expense()
         }
     
 @classmethod
@@ -97,24 +106,18 @@ def from_dict(cls, data:dict) -> 'ImportOrder':
     '''
     tao ImportOrder tu dict
     '''
-    ngayTao = None
-    ngayNhapHang = None
-    DSsanpham = []
-    if data.get('ngayTao'):
-        ngayTao = datetime.fromisoformat(data['ngayTao'])
-    if data.get('ngayNhapHang'):
-        ngayNhapHang = datetime.fromisoformat(data['ngayNhapHang'])
-    for sanpham in data.get('DSsanpham',[]):
-        DSsanpham.append(ImportItems(**sanpham))
+    items = []
+    for item in data.get('items',[]):
+        items.append(ImportItems(**item))
     return cls(
         id = data.get('id'),
-        tenNhaCungCap = data.get('tenNhaCungCap'),
-        ngayNhapHang = ngayNhapHang,
-        tinhTrang = data.get('tinhTrang',"HOAN TAT"),
-        ghiChu = data.get('ghiChu'),
-        tienVanChuyen = data.get('tienVanChuyen',0.0),
-        ngayTao = ngayTao,
-        DSsanpham = DSsanpham
+        supplier_name = data.get('supplier_name'),
+        received_at = datetime.fromisoformat(data.get('received_at') if data.get('received_at') else None),
+        status = data.get('WAITING',"FINISHED"),
+        note = data.get('note'),
+        shipping_fee = data.get('shipping_fee',0.0),
+        created_at = datetime.fromisoformat(data.get('created_at') if data.get('created_at') else None),
+        items = items
     )
 
     

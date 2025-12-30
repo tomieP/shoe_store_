@@ -4,13 +4,12 @@ from typing import Optional
 
 @dataclass
 class DailyReport:
-    id: Optional[int] = None            #mã thống kê
-    ngayTK: datetime = None             #ngày thống kê
-    tongDoanhThu: float = 0.0           #tổng doanh thu
-    tongSPBan: int = 0                  #tổng sản phẩm bán
-    tongHD: int = 0                     #tổng hóa đơn
-    ghiChu: Optional[str] = None        #ghi chú
-    ngayTao: Optional[datetime] = None  #ngày tạo thống kê
+    id: Optional[int] = None                #mã thống kê
+    daily_revenue: float = 0.0              #tổng doanh thu
+    total_units_sold: int = 0               #tổng sản phẩm bán
+    invoice_total_amount: int = 0           #tổng hóa đơn
+    note: Optional[str] = None              #ghi chú
+    created_at: Optional[datetime] = None   #ngày tạo thống kê
 
     def Tinh_tongDoanhThu(self) -> float:
         '''
@@ -33,12 +32,11 @@ class DailyReport:
         '''
         return{
             'id':self.id,
-            'ngayTK':self.ngayTK.isoformat() if self.ngayTK else None,
-            'tongDoanhThu':self.tongDoanhThu,
-            'tongSPBan':self.tongSPBan,
-            'tongHD':self.tongHD,
-            'ghiChu':self.ghiChu,
-            'ngayTao':self.ngayTao.isoformat() if self.ngayTao else None
+            'daily_revenue':self.daily_revenue,
+            'total_units_sold':self.total_units_sold,
+            'invoice_total_amount':self.invoice_total_amount,
+            'note':self.note,
+            'created_at':self.created_at.isoformat() if self.ngayTao else None
         }
 
 @classmethod
@@ -46,17 +44,11 @@ def from_dict(cls,data:dict) -> 'DailyReport':
     '''
     tạo dailyrp từ dict
     '''
-    ngayTK = None
-    if data.get('ngayTK'):
-        ngayTK = datetime.fromisoformat(data['ngayTK'])
-    if data.get('ngayTao'):
-        ngayTao = datetime.fromisoformat(data['ngayTao'])
     return cls(
         id = data.get('id'),
-        ngayTK = ngayTK,
-        tongDoanhThu = data.get('tongDoanhThu'),
-        tongSPBan = data.get('tongSPBan'),
-        tongHD = data.get('tongHD'),
-        ghiChu = data.get('ghiChu'),
-        ngayTao = ngayTao
+        daily_revenue = data.get('daily_revenue'),
+        total_units_sold = data.get('total_units_sold'),
+        invoice_total_amount = data.get('invoice_total_amount'),
+        note = data.get('note'),
+        created_at = datetime.fromisoformat(data.get('created_at')) if data.get('created_at') else None
     )

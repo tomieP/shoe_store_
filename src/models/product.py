@@ -30,7 +30,7 @@ class Product:
         """
         return f"Số lượng còn lại của sản phẩm {self.id}_{self.code}_{self.name}: {self.quantity}."
     
-    def fix_discount(self,dong:float) -> float:
+    def fixed_discount(self,dong:float) -> float:
         '''
         Docstring for GiamGia
         Áp dụng giảm giá cho sản phẩm
@@ -49,15 +49,15 @@ class Product:
         để lưu vào db
         '''
         return{
-            'maSP':self.id,
-            'codeSP':self.code,
-            'tenSP':self.name,
-            'mota':self.description,
+            'id':self.id,
+            'code':self.code,
+            'name':self.name,
+            'description':self.description,
             'brand':self.brand,
-            'donGia':self.price,
+            'price':self.price,
             'size':self.size,
-            'soLuong':self.quantity,
-            'conKinhDoanh':self.is_active,
+            'quantity':self.quantity,
+            'is_active':self.is_active,
             'imagePath':self.imagePath,
             'QRPath':self.QRPath,
             'updated_at':self.updated_at.isoformat() if self.updated_at else None,
