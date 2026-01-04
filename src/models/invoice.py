@@ -13,7 +13,7 @@ class InvoiceDetail:
     size: Optional[int] = None                  #size sản phẩm
     price: float = 0.0                          #đơn giá    
     quantity: int = 0                           #số lượng
-    sub_total: float = 0.0                       #tổng giá tiền của 1 sản phẩm
+    sub_total: float = 0.0                      #tổng giá tiền của 1 sản phẩm
     note: Optional[str] = None                  #ghi chú
 
     def calsubTotal(self) -> float:

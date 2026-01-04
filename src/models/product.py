@@ -4,17 +4,18 @@ from typing import Optional
 
 @dataclass
 class Product:
-    id:Optional[int] = None                       #mã sản phẩm (hệ thống sinh)
-    code: Optional[str] = None                      #tên mã sản phẩm (người dùng nhập)
+    id:Optional[int] = None                         #mã sản phẩm (hệ thống sinh)
+    code: str = ""                                  #tên mã sản phẩm (người dùng nhập)
+    category: str = ""                              #loại sản phẩm (giày, dép, vớ)
     name: Optional[str] = None                      #tên sản phẩm    
     description: Optional[str] = None               #mô tả sản phẩm
     brand: Optional[str] = None                     #brand sản phẩm
     price: float = 0.0                              #đơn giá 
-    size: Optional[str] = None                      #size sản phẩm
+    size: str = ""                                  #size sản phẩm
     quantity: int = 0                               #số lượng tồn kho
     is_active: int = 1                              #1: con kinh doanh, 0: ngung kinh doanh
-    imagePath: Optional[str] = None                 #đường đẫn ảnh
-    QRPath: Optional[str] = None                    #đường dẫn mã QR
+    imagePath: str = ""                             #đường đẫn ảnh
+    QRPath: str = ""                                #đường dẫn mã QR
     updated_at: Optional[datetime] = None           #ngày cập nhật sản phẩm
     created_at: Optional[datetime] = None           #ngày tạo sản phẩm
 
@@ -51,6 +52,7 @@ class Product:
         return{
             'id':self.id,
             'code':self.code,
+            'category':self.category,
             'name':self.name,
             'description':self.description,
             'brand':self.brand,
@@ -73,6 +75,7 @@ class Product:
         return cls(
             id = data.get('id'),
             code = data.get('code'),
+            category = data.get('category'),
             name = data.get('name'),
             description = data.get('description'),
             brand = data.get('brand'),

@@ -20,18 +20,16 @@ class Database:
                 CREATE TABLE IF NOT EXISTS products(
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         code TEXT UNIQUE NOT NULL,
-                        name TEXT,
-                        description TEXT,
+                        category TEXT NOT NULL,
                         brand TEXT,
-                           
                         price REAL NOT NULL,
                         size TEXT NOT NULL,
                         quantity INTEGER DEFAULT 0 CHECK (quantity >= 0),
-                        
-                        is_active INTEGER NOT NULL CHECK(is_active IN (0,1)),
+                        name TEXT,
                         imagePath TEXT NOT NULL,
                         QRPath TEXT NOT NULL,
-                           
+                        is_active INTEGER NOT NULL CHECK(is_active IN (0,1)),
+                        description TEXT,                         
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                         )
@@ -40,10 +38,10 @@ class Database:
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS invoices(
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         method TEXT NOT NULL,
                         total_amount REAL NOT NULL,
-                        note TEXT
+                        note TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                         )
                         ''')
         #INVOICE DETAILS TABLE
@@ -68,9 +66,9 @@ class Database:
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS daily_rp(
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        daily_revenue REAL NOT NULL CHECK (daily_revenue >= 0),
                         total_units_sold INTEGER NOT NULL  CHECK (total_units_sold >= 0),
-                        invoice_total_amount INTEGER NOT NULL  CHECK (invoice_total_amount >= 0),
+                        invoice_total_amount INTEGER NOT NULL  CHECK (invoice_total_amount >= 0),                           
+                        daily_revenue REAL NOT NULL CHECK (daily_revenue >= 0),
                         note TEXT,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                         )
@@ -80,10 +78,10 @@ class Database:
                 CREATE TABLE IF NOT EXISTS import_order(
                            id INTEGER PRIMARY KEY AUTOINCREMENT,
                            supplier_name TEXT,
-                           received_at TEXT NOT NULL,
                            status TEXT NOT NULL CHECK (status IN ("WAITING", "FINISHED")),
                            note TEXT,
-                           shipping_fee REAL NOT NULL CHECK (shipping_fee >= 0),
+                           shipping_fee REAL CHECK (shipping_fee >= 0),
+                           received_at TEXT NOT NULL,
                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                            )
                            ''')
@@ -145,7 +143,7 @@ class Database:
             conn.close()
             raise e
         
-    def backup_database(self, backup_dir = './src/backups'):
+    def backup_database(self, backup_dir = r'.\src\backups\database'):
         source_conn = None
         backup_conn = None
         try:
