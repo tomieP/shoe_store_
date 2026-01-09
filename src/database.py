@@ -30,8 +30,8 @@ class Database:
                         QRPath TEXT NOT NULL,
                         is_active INTEGER NOT NULL CHECK(is_active IN (0,1)),
                         description TEXT,                         
-                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        updated_at TEXT NOT NULL,
+                        created_at TEXT NOT NULL
                         )
                         ''')
         #INVOICE TABLE
@@ -41,7 +41,7 @@ class Database:
                         method TEXT NOT NULL,
                         total_amount REAL NOT NULL,
                         note TEXT,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        created_at TEXT NOT NULL
                         )
                         ''')
         #INVOICE DETAILS TABLE
@@ -70,7 +70,7 @@ class Database:
                         invoice_total_amount INTEGER NOT NULL  CHECK (invoice_total_amount >= 0),                           
                         daily_revenue REAL NOT NULL CHECK (daily_revenue >= 0),
                         note TEXT,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        created_at TEXT NOT NULL
                         )
                         ''')
         #IMPORT ORDER
@@ -82,7 +82,7 @@ class Database:
                            note TEXT,
                            shipping_fee REAL CHECK (shipping_fee >= 0),
                            received_at TEXT NOT NULL,
-                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                           created_at TEXT NOT NULL
                            )
                            ''')
         #IMPORT ITEMS TABLE 
@@ -97,7 +97,7 @@ class Database:
                         quantity INTEGER NOT NULL CHECK (quantity > 0),
                         unit_cost REAL NOT NULL CHECK (unit_cost > 0),
                         
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        created_at TEXT NOT NULL,
 
                         FOREIGN KEY (id_product) REFERENCES products(id),
                         FOREIGN KEY (id_order) REFERENCES import_order(id)
