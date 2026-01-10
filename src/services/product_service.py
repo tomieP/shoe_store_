@@ -3,23 +3,9 @@ import logging
 import sqlite3
 from typing import Optional,List,Tuple
 
+from utils.time import now_vn
 from models.product import Product
 from database import db
-
-ID = 0
-CODE = 1
-CATEGORY = 2
-BRAND = 3
-PRICE = 4
-SIZE = 5
-QUANTITY = 6
-NAME = 7
-IMAGEPATH = 8
-QRPATH = 9
-IS_ACTIVE = 10
-DESCRIPTION = 11
-UPDATED_AT = 12
-CREATED_AT = 13
 
 MIN_QUANTITY = 5
 
@@ -35,25 +21,27 @@ class ProductService:
         chuyển 1 dòng kết quả Tuple từ db sang đối tượng Product 
         """
         return Product(
-            id= row[ID],
-            code= row[CODE],
-            category= row[CATEGORY],
-            brand= row[BRAND],
-            price= row[PRICE],
-            size= row[SIZE],
-            quantity= row[QUANTITY],
-            name= row[NAME],
-            imagePath= row[IMAGEPATH],
-            QRPath= row[QRPATH],
-            is_active= row[IS_ACTIVE],
-            description= row[DESCRIPTION],
-            updated_at= datetime.strptime(row[UPDATED_AT], '%Y-%m-%d %H:%M:%S') if row[UPDATED_AT] else None,
-            created_at= datetime.strptime(row[CREATED_AT], '%Y-%m-%d %H:%M:%S') if row[CREATED_AT] else None
+            id= row["id"],
+            code= row["code"],
+            category= row["category"],
+            brand= row["brand"],
+            price= row["price"],
+            size= row["size"],
+            quantity= row["quantity"],
+            name= row["name"],
+            imagePath= row["imagePath"],
+            QRPath= row["QRPath"],
+            is_active= row["is_active"],
+            description= row["description"],
+            updated_at= datetime.strptime(row["updated_at"], '%Y-%m-%d %H:%M:%S') if row["updated_at"] else None,
+            created_at= datetime.strptime(row["created_at"], '%Y-%m-%d %H:%M:%S') if row["created_at"] else None
         )
 
     def add_product(self,product: Product) -> int:
         '''
         thêm 1 sản phẩm mới vào db
+        
+        return id của sản phẩm vừa thêm
         '''
         try:
             '''
@@ -64,11 +52,15 @@ class ProductService:
             if self.get_product_by_code(product.code):
                 raise ValueError(f"Sản phẩm {product.name} đã tồn tại với code sản phẩm là {product.code}.")
             else:
+                product.created_at = now_vn()
+                product.updated_at = now_vn()
+
                 query = """
                 INSERT INTO products
                 (
                 code,category,name,description,brand,price,
-                size,quantity,is_active,imagePath,QRPath
+                size,quantity,is_active,imagePath,QRPath,
+                created_at,updated_at
                 )
                 VALUES(?,?,?,?,?,?,?,?,?,?,?)
                 """
@@ -76,7 +68,8 @@ class ProductService:
                     product.code, product.category, product.name, product.description,
                     product.brand, product.price, product.size,
                     product.quantity, product.is_active,
-                    product.imagePath, product.QRPath
+                    product.imagePath, product.QRPath,
+                    product.created_at, product.updated_at
                 )
                 product_id = self.db.execute_query(query, params, fetch = False)
                 product.id = product_id
@@ -138,19 +131,21 @@ class ProductService:
             existing = self.get_product_by_code(product.code)
             if existing and existing.id != product.id:
                 raise ValueError(f"code san pham {product.code} da duoc su dung")
+            
+            product.updated_at = now_vn()
             query = """
             UPDATE products
             SET code = ?, name = ?, description = ?,
                 brand = ?, price = ?, size = ?,
                 quantity = ?, imagePath = ?, QRPath = ?,
-                updated_at = CURRENT_TIMESTAMP
+                updated_at = ?
             WHERE id = ? and is_active = 1
             """
             params = (
                 product.code, product.name, product.description,
                 product.brand, product.price, product.size,
                 product.quantity, product.imagePath, product.QRPath,
-                product.id
+                product.updated_at, product.id
             )
             self.db.execute_query(query,params,fetch=False)
             logger.info(f"updated product: {product.code}_{product.name}")
