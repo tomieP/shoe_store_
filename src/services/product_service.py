@@ -2,6 +2,7 @@ from datetime import datetime
 import logging
 import sqlite3
 from typing import Optional,List,Tuple
+import re
 
 from utils.time import now_vn
 from models.product import Product
@@ -43,6 +44,14 @@ class ProductService:
         
         return id của sản phẩm vừa thêm
         '''
+        if not product.code or not product.code.strip():
+            raise ValueError("product code cannot be empty")
+        if not re.fullmatch(r'[A-Za-z0-9_-]+',product.code):
+            raise ValueError("invalid product code")
+        if product.quantity <= 0:
+            raise ValueError("product quantity must be greater than 0")
+        if product.price <= 0:
+            raise ValueError("product price must be greater than 0")
         try:
             '''
             Kiem tra san pham da ton tai?
