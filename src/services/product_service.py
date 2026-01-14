@@ -350,34 +350,36 @@ class ProductService:
             headers = [cell.value for cell in sheet[1]]
             
             for idx, row in enumerate(sheet.iter_rows(min_row= 2,values_only= True), start=2):
-                data = dict(zip(headers,row))
+                # bỏ qua các dòng trống
+                if row and any(row): 
+                    data = dict(zip(headers,row))
 
-                try:
-                    product = Product(
-                        code = data.get("code"),
-                        category = data.get("category"),
-                        brand = data.get("brand"),
-                        price = data.get("price"),
-                        size = data.get("size"),
-                        quantity = data.get("quantity"),
-                        name = data.get("name"),
-                        imagePath = data.get("imagePath"),
-                        QRPath = data.get("QRPath"),
-                        is_active = 1,
-                        description = data.get("description"),
-                    )
+                    try:
+                        product = Product(
+                            code = data.get("code"),
+                            category = data.get("category"),
+                            brand = data.get("brand"),
+                            price = data.get("price"),
+                            size = data.get("size"),
+                            quantity = data.get("quantity"),
+                            name = data.get("name"),
+                            imagePath = data.get("imagePath"),
+                            QRPath = data.get("QRPath"),
+                            is_active = 1,
+                            description = data.get("description"),
+                        )
 
-                    self.add_product(product)
-                    reports["success"] += 1
-                except Exception as row_error:
-                    reports["failed"] += 1
-                    reports["errors"].append({
-                        "row" : idx,
-                        "code": data.get("code"),
-                        "error": str(row_error)
-                    })
-                    logger.warning(f"import error at row {idx}: {row_error}")
-                    continue
+                        self.add_product(product)
+                        reports["success"] += 1
+                    except Exception as row_error:
+                        reports["failed"] += 1
+                        reports["errors"].append({
+                            "row" : idx,
+                            "code": data.get("code"),
+                            "error": str(row_error)
+                        })
+                        logger.warning(f"import error at row {idx}: {row_error}")
+                        continue
             return reports
         except Exception as e:
             logger.exception(f"error importing from excel: {e}")
