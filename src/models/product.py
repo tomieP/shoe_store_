@@ -14,7 +14,7 @@ class Product:
     size: str = ""                                  #size sản phẩm
     quantity: int = 0                               #số lượng tồn kho
     is_active: int = 1                              #1: con kinh doanh, 0: ngung kinh doanh
-    imagePath: str = ""                             #đường đẫn ảnh
+    imagePath: str = ""                             #đường dẫn ảnh
     QRPath: str = ""                                #đường dẫn mã QR
     updated_at: Optional[datetime] = None           #ngày cập nhật sản phẩm
     created_at: Optional[datetime] = None           #ngày tạo sản phẩm
