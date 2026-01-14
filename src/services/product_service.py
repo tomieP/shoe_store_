@@ -4,6 +4,8 @@ import sqlite3
 from typing import Optional,List,Tuple
 import re
 
+from openpyxl import load_workbook
+
 from utils.time import now_vn
 from models.product import Product
 from database import db
@@ -17,9 +19,9 @@ class ProductService:
         self.db = db
         logger.info("Product service initialized")
 
-    def row_to_product(self, row: Tuple) -> Product:
+    def row_to_product(self, row) -> Product:
         """
-        chuyển 1 dòng kết quả Tuple từ db sang đối tượng Product 
+        chuyển 1 dòng kết quả dict-like từ db sang đối tượng Product 
         """
         return Product(
             id= row["id"],
@@ -34,8 +36,8 @@ class ProductService:
             QRPath= row["QRPath"],
             is_active= row["is_active"],
             description= row["description"],
-            updated_at= datetime.strptime(row["updated_at"], '%Y-%m-%d %H:%M:%S') if row["updated_at"] else None,
-            created_at= datetime.strptime(row["created_at"], '%Y-%m-%d %H:%M:%S') if row["created_at"] else None
+            updated_at= datetime.fromisoformat(row["updated_at"]),
+            created_at= datetime.fromisoformat(row["created_at"])
         )
 
     def add_product(self,product: Product) -> int:
@@ -55,7 +57,7 @@ class ProductService:
         try:
             '''
             Kiem tra san pham da ton tai?
-                neu co -> thong bao da ton tai (-> yeu cau chuyen huong sang update_product)
+                neu co -> thong bao da ton tai
                 neu khong -> them san pham vao db
             '''
             if self.get_product_by_code(product.code):
@@ -71,7 +73,7 @@ class ProductService:
                 size,quantity,is_active,imagePath,QRPath,
                 created_at,updated_at
                 )
-                VALUES(?,?,?,?,?,?,?,?,?,?,?)
+                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """
                 params = (
                     product.code, product.category, product.name, product.description,
@@ -147,14 +149,14 @@ class ProductService:
             SET code = ?, name = ?, description = ?,
                 brand = ?, price = ?, size = ?,
                 quantity = ?, imagePath = ?, QRPath = ?,
-                updated_at = ?
+                updated_at = ?, category = ?
             WHERE id = ? and is_active = 1
             """
             params = (
                 product.code, product.name, product.description,
                 product.brand, product.price, product.size,
                 product.quantity, product.imagePath, product.QRPath,
-                product.updated_at, product.id
+                product.updated_at, product.category, product.id
             )
             self.db.execute_query(query,params,fetch=False)
             logger.info(f"updated product: {product.code}_{product.name}")
@@ -267,14 +269,16 @@ class ProductService:
                 raise ValueError(f"product quantity can't be negative! current quantity: {product.quantity}")
             
             #thuc hien cap nhat
+            product.updated_at = now_vn()
             query = """
             UPDATE products
             SET quantity = quantity + ?
-                updated_at = CURRENT_STAMP
+                updated_at = ?
             WHERE id = ? AND is_active = 1
             """
             params = (
-                quantity_change, 
+                quantity_change,
+                product.updated_at, 
                 product_id
             )
             self.db.execute_query(query,params,fetch= False)
@@ -291,7 +295,7 @@ class ProductService:
         """
         try:
             query = """
-            SELECT * FROM products
+           SELECT DISTINCT brand FROM products 
             WHERE brand IS NOT NULL AND brand != ''
                 AND is_active = 1
             ORDER BY brand"""
@@ -325,3 +329,57 @@ class ProductService:
             logger.exception(f"error getting categories: {e}")
             return []
 
+    def import_from_excel(self, file_path: str, sheet_name: str = 'products'):
+        """
+        lấy dữ liệu từ file excel và lưu vào db
+            -xử lý từng dòng
+            -không rollback toàn bộ nếu 1 dòng lỗi
+        Args:
+            file_path (str): _description_
+            sheet_name (str, optional): _description_. Defaults to 'products'.
+        """
+        reports = {
+            "success": 0,
+            "failed" : 0,
+            "errors": []
+        }
+
+        try:
+            wb = load_workbook(filename=file_path)
+            sheet = wb[sheet_name]
+            headers = [cell.value for cell in sheet[1]]
+            
+            for idx, row in enumerate(sheet.iter_rows(min_row= 2,values_only= True), start=2):
+                data = dict(zip(headers,row))
+
+                try:
+                    product = Product(
+                        code = data.get("code"),
+                        category = data.get("category"),
+                        brand = data.get("brand"),
+                        price = data.get("price"),
+                        size = data.get("size"),
+                        quantity = data.get("quantity"),
+                        name = data.get("name"),
+                        imagePath = data.get("imagePath"),
+                        QRPath = data.get("QRPath"),
+                        is_active = 1,
+                        description = data.get("description"),
+                    )
+
+                    self.add_product(product)
+                    reports["success"] += 1
+                except Exception as row_error:
+                    reports["failed"] += 1
+                    reports["errors"].append({
+                        "row" : idx,
+                        "code": data.get("code"),
+                        "error": str(row_error)
+                    })
+                    logger.warning(f"import error at row {idx}: {row_error}")
+                    continue
+            return reports
+        except Exception as e:
+            logger.exception(f"error importing from excel: {e}")
+            raise
+        
