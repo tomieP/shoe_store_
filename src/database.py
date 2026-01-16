@@ -24,7 +24,7 @@ class Database:
                         brand TEXT,
                         price REAL NOT NULL,
                         size TEXT NOT NULL,
-                        quantity INTEGER DEFAULT 0 CHECK (quantity >= 0),
+                        quantity INTEGER DEFAULT 0 CHECK (quantity > 0),
                         name TEXT,
                         imagePath TEXT NOT NULL,
                         QRPath TEXT NOT NULL,
